@@ -1,5 +1,4 @@
-import React from 'react'
-
+import React, {Component, useState, useEffect} from 'react'
 const Team = () => {
 
 const [data,setData] = useState([{}])

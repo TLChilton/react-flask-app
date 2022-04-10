@@ -7,7 +7,14 @@ module.exports = {
       padding: ['hover'],
       colors:{
         blue:{
-          450: '#5F99F7'
+          450: '#5F99F7',
+          666: '#3b7bbf'
+        },
+        brown:{
+          500:'#684d68'
+        },
+        white:{
+            100: '#d3d8e0'
         }
       }
     },
