@@ -49,7 +49,8 @@ def predict():
         yhat = model.predict(predict_X)
         yhat = yhat.reshape(-1,1)
 
-        return render_template('index.html', prediction_text='Successful prediction')
+        #return render_template('index.html', prediction_text='Successful prediction')
+        return jsonify(yhat.tolist())
     elif file.filename == '':
         flash('No selected file')
         return render_template('index.html', error_text="No selected file")
@@ -64,8 +65,7 @@ def results():
     data = request.get_json(force=True)
     prediction = model.predict([np.array(list(data.values()))])
 
-    output = prediction[0]
-    return jsonify(output)
+    return jsonify(prediction)
 
 if __name__ == "__main__":
     app.run(debug=True)
