@@ -12,18 +12,13 @@
 </head>
 
 <body style="background: #000;">
- <div class="login">
-    {{ error_text }}
-	<h1>Forecasting</h1>
+ <div class="center">
+	<h1>Results</h1>
+  </div>
 
-     <!-- Main Input For Receiving Query to our ML -->
-    <form enctype="multipart/form-data" action="{{ url_for('predict')}}"method="post">
-    	<input id="fileupload" name="file" type="file" />
-      <button type="submit" class="btn btn-primary btn-block btn-large">Submit</button>
-    </form>
-
-
- </div>
+   <img src={{ url }} alt="Chart", class="center">
+   <br>
+   <a href="/getPlotCSV" class="btn btn-primary btn-block btn-large center">Download as CSV</a>
 
 
 </body>
