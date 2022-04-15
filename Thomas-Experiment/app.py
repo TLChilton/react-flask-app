@@ -1,3 +1,9 @@
+# Disable tensorflow and pandas version warnings
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 import numpy as np
 import pandas as pd
 import pandas_datareader as pdr # for downloading stock data
@@ -8,7 +14,6 @@ from sklearn.preprocessing import MinMaxScaler
 from flask import Flask, flash, request, Response, render_template
 from werkzeug.utils import secure_filename
 from matplotlib import pyplot
-import os
 import datetime
 from pandas.tseries.holiday import USFederalHolidayCalendar
 from pandas.tseries.offsets import CustomBusinessDay
@@ -49,7 +54,8 @@ def predict():
         start_day=past.day,
         stop_year=today.year,
         stop_mon=today.month,
-        stop_day=today.day
+        stop_day=today.day,
+        verbose=False
     )
     df_evTrend.index = pd.to_datetime(df_evTrend.index)
     df_evTrend.rename(columns={'Electric vehicle': 'EV Trend'}, inplace=True)
@@ -60,7 +66,8 @@ def predict():
         start_day=past.day,
         stop_year=today.year,
         stop_mon=today.month,
-        stop_day=today.day
+        stop_day=today.day,
+        verbose=False
     )
     df_covidTrend.index = pd.to_datetime(df_covidTrend.index)
     df_covidTrend.rename(columns={'Coronavirus': 'Coronavirus Trend'}, inplace=True)
