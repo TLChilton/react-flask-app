@@ -11,8 +11,7 @@ import dataDownload as dd   # dataDownload.py file uses pytrends library
 from tensorflow import keras
 from math import floor
 from sklearn.preprocessing import MinMaxScaler
-from flask import Flask, flash, request, Response, render_template
-from werkzeug.utils import secure_filename
+from flask import Flask, Response, render_template
 from matplotlib import pyplot
 import datetime
 from pandas.tseries.holiday import USFederalHolidayCalendar
@@ -22,6 +21,7 @@ from pandas.tseries.offsets import CustomBusinessDay
 US_BUSINESS_DAY = CustomBusinessDay(calendar=USFederalHolidayCalendar())
 ALLOWED_EXTENSIONS = {'csv'}
 UPLOAD_FOLDER = 'uploads'
+GTRENDS_CACHE = pd.read_csv("data/CachedGoogleTrends.csv", parse_dates=['date'], index_col=0)
 
 app = Flask(__name__)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
@@ -39,44 +39,62 @@ def home():
 
 @app.route('/predict',methods=['POST', 'GET'])
 def predict():
-    # Get today's date and a date 281 trading days in the past
-    today = datetime.datetime.today()
-    past = (today - 281 * US_BUSINESS_DAY).to_pydatetime().date()
+    global GTRENDS_CACHE
     # Download stock data
     df_GM = pdr.get_data_tiingo('GM',api_key=key)
     df_GM.index = df_GM.index.droplevel(0)
     df_GM.index = pd.to_datetime(df_GM.index)
-    # Download Google Trends data
-    df_evTrend = dd.get_daily_data(
-        word="Electric vehicle",
-        start_year=past.year,
-        start_mon=past.month,
-        start_day=past.day,
-        stop_year=today.year,
-        stop_mon=today.month,
-        stop_day=today.day,
-        verbose=False
-    )
-    df_evTrend.index = pd.to_datetime(df_evTrend.index)
-    df_evTrend.rename(columns={'Electric vehicle': 'EV Trend'}, inplace=True)
-    df_covidTrend = dd.get_daily_data(
-        word="Coronavirus",
-        start_year=past.year,
-        start_mon=past.month,
-        start_day=past.day,
-        stop_year=today.year,
-        stop_mon=today.month,
-        stop_day=today.day,
-        verbose=False
-    )
-    df_covidTrend.index = pd.to_datetime(df_covidTrend.index)
-    df_covidTrend.rename(columns={'Coronavirus': 'Coronavirus Trend'}, inplace=True)
+    # Get today's date and a date 280 trading days in the past
+    today = datetime.datetime.today()
+    past = (today - 282 * US_BUSINESS_DAY).to_pydatetime()
+
+    if GTRENDS_CACHE.iloc[-1:].index.to_pydatetime()[0] >= today:
+        df_trends = GTRENDS_CACHE.loc[(GTRENDS_CACHE.index <= today) & (GTRENDS_CACHE.index >= past)]
+    else:
+        try:
+            print('Downloading Google Trends Data', flush=True)
+            latest = GTRENDS_CACHE.iloc[-1:].index.to_pydatetime()[0]
+            # Download Google Trends data
+            df_evTrend = dd.get_daily_data(
+                word="Electric vehicle",
+                start_year=latest.year,
+                start_mon=latest.month,
+                start_day=latest.day,
+                stop_year=today.year,
+                stop_mon=today.month,
+                stop_day=today.day,
+                verbose=True
+            )
+            df_evTrend.index = pd.to_datetime(df_evTrend.index)
+            df_evTrend.drop(columns=['Electric vehicle_unscaled', 'Electric vehicle_monthly', 'isPartial', 'scale'], axis=1, inplace=True)
+            df_evTrend.rename(columns={'Electric vehicle': 'EV Trend'}, inplace=True)
+            df_covidTrend = dd.get_daily_data(
+                word="Coronavirus",
+                start_year=latest.year,
+                start_mon=latest.month,
+                start_day=latest.day,
+                stop_year=today.year,
+                stop_mon=today.month,
+                stop_day=today.day,
+                verbose=True
+            )
+            df_covidTrend.index = pd.to_datetime(df_covidTrend.index)
+            df_covidTrend.drop(columns=['Coronavirus_unscaled', 'Coronavirus_monthly', 'isPartial', 'scale'], axis=1, inplace=True)
+            df_covidTrend.rename(columns={'Coronavirus': 'Coronavirus Trend'}, inplace=True)
+            df_trends = df_covidTrend.merge(df_evTrend, how='outer', left_index=True, right_index=True)
+            df_fromCache = GTRENDS_CACHE.loc[(GTRENDS_CACHE.index >= past)]
+            GTRENDS_CACHE = pd.concat([GTRENDS_CACHE, df_trends]).drop_duplicates()
+            GTRENDS_CACHE.to_csv('data/CachedGoogleTrends.csv')
+            df_trends = pd.concat([df_fromCache, df_trends]).drop_duplicates()
+        except KeyError:
+            print('Unable to download new period, using last available cached data', flush=True)
+            df_trends = GTRENDS_CACHE.loc[(GTRENDS_CACHE.index <= today) & (GTRENDS_CACHE.index >= past)]
+
 
     # The stock data is timezoned, so we have to make it untimezoned
     df_GM.index = df_GM.index.tz_convert(None)
     # Merge datasets
-    df = df_GM.merge(df_evTrend, how='outer', left_index=True, right_index=True)
-    df = df.merge(df_covidTrend, how='outer', left_index=True, right_index=True)
+    df = df_GM.merge(df_trends, how='outer', left_index=True, right_index=True)
     # Add day info for the model to use
     df['Month'] = pd.DatetimeIndex(df.index).month
     df['Day of the Month'] = pd.DatetimeIndex(df.index).day
@@ -100,7 +118,6 @@ def predict():
     # Finding Quarterly Maxes in Prediction
     numQuarters = floor(365 / 90)
     quarter = floor(365/numQuarters)
-    print(quarter)
     maxes = [np.argmax(yhat[0:quarter], axis=0)]
     for i in range(0, numQuarters-1):
         maxes.append(np.argmax(yhat[quarter*(i+1):quarter*(i+2)-1], axis=0)+quarter*(i+1))
