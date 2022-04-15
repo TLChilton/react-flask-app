@@ -1,6 +1,6 @@
 import { MenuOutlined } from '@material-ui/icons';
 import React,{useState} from 'react';
-import { Link, parsePath } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import MenuItems from './MenuItems';
 
 const Header = () => {
@@ -26,19 +26,15 @@ const Header = () => {
             <div className='absolute text-white right-6 md:hidden top-6 scale-150'>
                 <MenuOutlined onClick={showMenu} className='scale-150 cursor-pointer'/>
             </div>
-
                 <ul className='text-white md:flex gap-8 p-6 uppercase text-xl font-semibold whitespace-nowrap text-white flex flex-col mt-4 md:flex-row md:space-x-8 md:mt-0 md:text-sm md:font-medium'>
                     <li className='text-white'><Link to='/'>Home</Link></li>
                     <li><Link to='/team'>Team</Link></li>
                     <a target="_blank" href = "https://github.com/spewmaker/react-flask-app">GitHub</a>
                     <li><Link to='/'>Contact</Link></li>
                 </ul>
-
                 <MenuItems showMenu={showMenu} active={active}/>
             </div>
-
         </nav>
-
     </div>
   );
 };
