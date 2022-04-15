@@ -109,7 +109,7 @@ def predict():
     df_GM.index = pd.to_datetime(df_GM.index)
     # Get today's date and a date 280 trading days in the past
     today = datetime.datetime.today()
-    past = (today - 282 * US_BUSINESS_DAY).to_pydatetime()
+    past = (today - 281 * US_BUSINESS_DAY).to_pydatetime()
 
     ''' Section for Google Trends
      We check if the Google Trends data we need is available in the cached CSV
@@ -120,20 +120,23 @@ def predict():
         if today < GTRENDS_CACHE.iloc[0].index.to_pydatetime()[0]:
             download = downloadTrends(past, GTRENDS_CACHE.iloc[0].index.to_pydatetime()[0])
             if download is None:
-                df_trends = GTRENDS_CACHE.loc[(GTRENDS_CACHE.index <= today) & (GTRENDS_CACHE.index >= past)]
+                past = GTRENDS_CACHE.iloc[0].index.to_pydatetime()[0]
+                today = (past + 281 * US_BUSINESS_DAY).to_pydatetime()
+                df_trends = GTRENDS_CACHE.loc[(GTRENDS_CACHE.index <= today)]
             else:
                 df_fromCache = GTRENDS_CACHE.loc[(GTRENDS_CACHE.index >= past)]
                 GTRENDS_CACHE = pd.concat([download, GTRENDS_CACHE]).drop_duplicates()
                 GTRENDS_CACHE.to_csv("data/CachedGoogleTrends.csv")
                 df_trends = pd.concat([download, df_fromCache]).drop_duplicates()
-
         else:
             df_trends = GTRENDS_CACHE.loc[(GTRENDS_CACHE.index <= today) & (GTRENDS_CACHE.index >= past)]
     # If our date is after the cache's last date
     else:
         download = downloadTrends(GTRENDS_CACHE.iloc[-1:].index.to_pydatetime()[0], today)
         if download is None:
-            df_trends = GTRENDS_CACHE.loc[(GTRENDS_CACHE.index <= today) & (GTRENDS_CACHE.index >= past)]
+            today = GTRENDS_CACHE.iloc[-1:].index.to_pydatetime()[0]
+            past = (today - 281 * US_BUSINESS_DAY).to_pydatetime()
+            df_trends = GTRENDS_CACHE.loc[(GTRENDS_CACHE.index >= past)]
         else:
             df_fromCache = GTRENDS_CACHE.loc[(GTRENDS_CACHE.index >= past)]
             GTRENDS_CACHE = pd.concat([GTRENDS_CACHE, download]).drop_duplicates()
