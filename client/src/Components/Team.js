@@ -16,7 +16,7 @@ const [data,setData] = useState([{}])
   }, [])
 
     return (
-        <div>
+        <div className='h-screen dark:bg-gray-800'>
         {(typeof data.team === 'undefined') ? (
           <p>...</p>
         ) : (

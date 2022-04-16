@@ -9,5 +9,9 @@ app = Flask(__name__)
 def team():
     return {"team": ["Heman","Thomas","Pranav"]}
 
+@app.route("/predict/<ticker>")
+def predict(ticker):
+    return "Ticker is " + ticker
+
 if __name__ == "__main__":
     app.run(debug=True)
