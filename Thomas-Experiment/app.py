@@ -21,6 +21,7 @@ from pandas.tseries.offsets import CustomBusinessDay
 US_BUSINESS_DAY = CustomBusinessDay(calendar=USFederalHolidayCalendar())
 ALLOWED_EXTENSIONS = {"csv"}
 UPLOAD_FOLDER = "uploads"
+INPUT_DAYS = 206
 GTRENDS_CACHE = pd.read_csv(
     "data/CachedGoogleTrends.csv", parse_dates=["date"], index_col=0
 )
@@ -29,7 +30,7 @@ app = Flask(__name__)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 key = "5e6bbd0e3991e4888a436338a938fd961cd835ca"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-model = keras.models.load_model("model.h5")
+model = keras.models.load_model("model2.h5")
 
 
 def allowed_file(filename):
@@ -117,7 +118,7 @@ def predict():
         df_Stock.index = df_Stock.index.tz_convert(None)
         # Get inputed date and a date 280 trading days in the past
         today = datetime.datetime.strptime(request.form['date'], '%Y-%m-%d')
-        past = df_Stock.loc[(df_Stock.index.to_pydatetime() <= today)].index[-281]
+        past = df_Stock.loc[(df_Stock.index.to_pydatetime() <= today)].index[-1*(INPUT_DAYS+1)]
 
         ''' Section for Google Trends
         We check if the Google Trends data we need is available in the cached CSV
@@ -129,7 +130,7 @@ def predict():
                 download = downloadTrends(past, GTRENDS_CACHE.index[0])
                 if download is None:
                     past = GTRENDS_CACHE.index[0]
-                    today = (past + 281 * US_BUSINESS_DAY).to_pydatetime()
+                    today = (past + (INPUT_DAYS + 1) * US_BUSINESS_DAY).to_pydatetime()
                     df_trends = GTRENDS_CACHE.loc[(GTRENDS_CACHE.index <= today)]
                 else:
                     df_fromCache = GTRENDS_CACHE.loc[(GTRENDS_CACHE.index >= past)]
@@ -143,7 +144,7 @@ def predict():
             download = downloadTrends(GTRENDS_CACHE.index[-1:], today)
             if download is None:
                 today = GTRENDS_CACHE.index[-1:]
-                past = (today - 281 * US_BUSINESS_DAY).to_pydatetime()
+                past = (today - (INPUT_DAYS + 1) * US_BUSINESS_DAY).to_pydatetime()
                 df_trends = GTRENDS_CACHE.loc[(GTRENDS_CACHE.index >= past)]
             else:
                 df_fromCache = GTRENDS_CACHE.loc[(GTRENDS_CACHE.index >= past)]
@@ -167,14 +168,13 @@ def predict():
         )
         df[['EV Trend', 'Coronavirus Trend']] = df[['EV Trend', 'Coronavirus Trend']].fillna(value=0)
         df.dropna(inplace=True)
-        df_predict = df.tail(280)
+        df_predict = df.tail(INPUT_DAYS)
         values = df_predict.values
         values = values.astype("float32")
         scaler = MinMaxScaler(feature_range=(0, 1))
         predict_X = scaler.fit_transform(values)
-        print(df_trends.shape)
         print(predict_X.shape, flush=True)
-        predict_X = predict_X.reshape(-1, 280, len(df.columns))
+        predict_X = predict_X.reshape(-1, INPUT_DAYS, len(df.columns))
 
         # Make Prediction
         yhat = model.predict(predict_X)
