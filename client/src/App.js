@@ -55,7 +55,7 @@ function FloatingLabelInput({ type, name, children }) {
   }
 
   return (
-    <div className="relative border rounded mb-2 opacity-90 bg-gray-600 text-white border-white border-opacity-25">
+    <div className="relative border rounded mb-2 bg-gray-600 text-white border-white border-opacity-25">
       <input
         className={[
           "outline-none w-full rounded bg-transparent text-sm transition-all duration-200 ease-in-out p-2",
@@ -81,7 +81,6 @@ function FloatingLabelInput({ type, name, children }) {
 
 function App() {
   const [data,setData] = useState([{}])
-
   useEffect(() => {
     fetch("/team").then(
       res => res.json()
@@ -93,6 +92,10 @@ function App() {
     )
 
   }, [])
+  const[stock, setStock] = useState('hi');
+  function handleActivation(e) {
+    setStock(e.target.value);
+  }
   const [startDate, setStartDate] = useState(new Date());
   return (
       
@@ -100,8 +103,14 @@ function App() {
       <Header/>
       <div  id = 'mainDiv' className = 'container content-center p-60'>
       <h1 class="font-medium leading-tight text-5xl mt-0 mb-2 text-blue-600">Peak Prediction</h1>
-      <FloatingLabelInput name="ticker" type="text">Stock Ticker</FloatingLabelInput>
+      <h4 class="font-medium leading-tight text-2xl mt-0 mb-2 text-blue-600">Enter a stock ticker</h4>
+      <div className="mb-3 pt-0">
+      <input type="text" placeholder="Placeholder" onChange = {handleActivation} className="px-3 py-3 placeholder-slate-300 text-slate-600 relative bg-white bg-white rounded text-sm border-0 shadow outline-none focus:outline-none focus:ring w-full"/></div>
       <DatePicker className = "relative border rounded mb-2 opacity-90 bg-gray-600 text-white border-white border-opacity-25" selected={startDate} onChange={(date) => setStartDate(date)} />
+      <div className='flex'>{startDate.toDateString()}</div>
+      <div className='flex'>{stock.toString()}</div>
+      {console.log(startDate)}
+      {console.log(stock.toString())}
       <Upload/>
       <div className="flex flex-wrap justify-center">
         <div className="px-4">
@@ -128,4 +137,5 @@ function TWbutton(){
     </button>
   )
 }
+
 export default App;
