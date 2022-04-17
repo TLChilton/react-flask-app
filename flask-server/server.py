@@ -1,4 +1,5 @@
 import os
+from pickle import TRUE
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
 import warnings
 warnings.simplefilter(action="ignore", category=FutureWarning)
@@ -19,9 +20,20 @@ from pandas.tseries.offsets import CustomBusinessDay
 US_BUSINESS_DAY = CustomBusinessDay(calendar=USFederalHolidayCalendar())
 ALLOWED_EXTENSIONS = {"csv"}
 UPLOAD_FOLDER = "uploads"
+INPUT_DAYS = 206
 GTRENDS_CACHE = pd.read_csv(
     "data/CachedGoogleTrends.csv", parse_dates=["date"], index_col=0
 )
+
+app = Flask(__name__)
+app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
+key = "5e6bbd0e3991e4888a436338a938fd961cd835ca"
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+model = keras.models.load_model("model2.h5")
+
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 app = Flask(__name__)
 
@@ -29,12 +41,12 @@ app = Flask(__name__)
 def team():
     return {"team": ["Heman","Thomas","Pranav"]}
 
-@app.route("/predict/<ticker>")
-def predict(ticker):
+@app.route("/ticker")
+def ticker():
+    ticker = request.args.get('ticker','hi')
     return "Ticker is " + ticker
 
-@app.route("/trends/<today>")
-def downloadTrends(today):
+def downloadTrends(past, today):
     try:
         print("Downloading Google Trends Data", flush=True)
         latest = GTRENDS_CACHE.iloc[-1:].index.to_pydatetime()[0]
@@ -97,24 +109,23 @@ def toDate(dateString):
 
 @app.route("/predict", methods=["POST", "GET"])
 def predict():
-    stock = request.args.get('stock', None)
-    today = request.args.get('today', None)
-    if request.method == 'POST':
+    stock = request.args.get('stock','TSLA')
+    todayTemp = request.args.get('todayTemp',None)
+    today = datetime.datetime.strptime(todayTemp, '%Y-%m-%d')
+    if TRUE:
         global GTRENDS_CACHE
         # Download stock data
-        stock = request.form['stock']
-        print(stock, flush=True)
+        #print(stock, flush=True)
         try:
             df_Stock = pdr.get_data_tiingo(stock, api_key=key)
-        except pdr._utils.RemoteDataError:
-            return render_template("index.html", error_text="Invalid Stock Ticker. Stock '%s' not found" %(stock))
+        except pdr._utils.RemoteDataError and KeyError:
+            return '-1'
         df_Stock.index = df_Stock.index.droplevel(0)
         df_Stock.index = pd.to_datetime(df_Stock.index)
         # The stock data is timezoned, so we have to make it untimezoned
         df_Stock.index = df_Stock.index.tz_convert(None)
         # Get inputed date and a date 280 trading days in the past
-        today = datetime.datetime.strptime(request.form['date'], '%Y-%m-%d')
-        past = df_Stock.loc[(df_Stock.index.to_pydatetime() <= today)].index[-281]
+        past = df_Stock.loc[(df_Stock.index.to_pydatetime() <= today)].index[-1*(INPUT_DAYS+1)]
 
         ''' Section for Google Trends
         We check if the Google Trends data we need is available in the cached CSV
@@ -126,7 +137,7 @@ def predict():
                 download = downloadTrends(past, GTRENDS_CACHE.index[0])
                 if download is None:
                     past = GTRENDS_CACHE.index[0]
-                    today = (past + 281 * US_BUSINESS_DAY).to_pydatetime()
+                    today = (past + (INPUT_DAYS + 1) * US_BUSINESS_DAY).to_pydatetime()
                     df_trends = GTRENDS_CACHE.loc[(GTRENDS_CACHE.index <= today)]
                 else:
                     df_fromCache = GTRENDS_CACHE.loc[(GTRENDS_CACHE.index >= past)]
@@ -140,7 +151,7 @@ def predict():
             download = downloadTrends(GTRENDS_CACHE.index[-1:], today)
             if download is None:
                 today = GTRENDS_CACHE.index[-1:]
-                past = (today - 281 * US_BUSINESS_DAY).to_pydatetime()
+                past = (today - (INPUT_DAYS + 1) * US_BUSINESS_DAY).to_pydatetime()
                 df_trends = GTRENDS_CACHE.loc[(GTRENDS_CACHE.index >= past)]
             else:
                 df_fromCache = GTRENDS_CACHE.loc[(GTRENDS_CACHE.index >= past)]
@@ -164,14 +175,13 @@ def predict():
         )
         df[['EV Trend', 'Coronavirus Trend']] = df[['EV Trend', 'Coronavirus Trend']].fillna(value=0)
         df.dropna(inplace=True)
-        df_predict = df.tail(280)
+        df_predict = df.tail(INPUT_DAYS)
         values = df_predict.values
         values = values.astype("float32")
         scaler = MinMaxScaler(feature_range=(0, 1))
         predict_X = scaler.fit_transform(values)
-        print(df_trends.shape)
         print(predict_X.shape, flush=True)
-        predict_X = predict_X.reshape(-1, 280, len(df.columns))
+        predict_X = predict_X.reshape(-1, INPUT_DAYS, len(df.columns))
 
         # Make Prediction
         yhat = model.predict(predict_X)
@@ -204,9 +214,9 @@ def predict():
         # Save prediction data to CSV
         np.savetxt("uploads/Prediction.csv", yhat, delimiter=",")
         # Go to results page
-        return render_template("results.html", url="static/images/chart.png", Stock=stock)
+        return '1'
     else:
-        return f"The URL /predict was accessed directly. It only accepts POSTs"
+        return '0'
 
 
 @app.route("/getPlotCSV", methods=["POST", "GET"])

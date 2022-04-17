@@ -3,8 +3,6 @@ import React, {Component, useState, useEffect} from 'react'
 import Header from "./Components/Header";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import Plot from 'react-plotly.js';
-import rd3 from 'react-d3-library';
 import Papa from 'papaparse';
 
 class Upload extends Component {
@@ -96,6 +94,19 @@ function App() {
   function handleActivation(e) {
     setStock(e.target.value);
   }
+  function formatDate(date) {
+    var d = new Date(date),
+        month = '' + (d.getMonth() + 1),
+        day = '' + d.getDate(),
+        year = d.getFullYear();
+
+    if (month.length < 2) 
+        month = '0' + month;
+    if (day.length < 2) 
+        day = '0' + day;
+
+    return [year, month, day].join('-');
+  }
   const [startDate, setStartDate] = useState(new Date());
   return (
       
@@ -107,7 +118,7 @@ function App() {
       <div className="mb-3 pt-0">
       <input type="text" placeholder="Placeholder" onChange = {handleActivation} className="px-3 py-3 placeholder-slate-300 text-slate-600 relative bg-white bg-white rounded text-sm border-0 shadow outline-none focus:outline-none focus:ring w-full"/></div>
       <DatePicker className = "relative border rounded mb-2 opacity-90 bg-gray-600 text-white border-white border-opacity-25" selected={startDate} onChange={(date) => setStartDate(date)} />
-      <div className='flex'>{startDate.toDateString()}</div>
+      <div className='flex'>{formatDate(startDate)}</div>
       <div className='flex'>{stock.toString()}</div>
       {console.log(startDate)}
       {console.log(stock.toString())}
