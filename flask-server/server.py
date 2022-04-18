@@ -211,6 +211,7 @@ def predict():
         pyplot.tight_layout()
         # Save plot to file
         pyplot.savefig("static/images/chart.png")
+        pyplot.savefig('../client/src/Components/assets/chart.png')
         # Save prediction data to CSV
         np.savetxt("uploads/Prediction.csv", yhat, delimiter=",")
         # Go to results page

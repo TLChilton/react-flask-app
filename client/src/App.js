@@ -52,6 +52,8 @@ function FloatingLabelInput({ type, name, children }) {
     setActive(!!e.target.value);
   }
 
+  
+
   return (
     <div className="relative border rounded mb-2 bg-gray-600 text-white border-white border-opacity-25">
       <input
@@ -79,20 +81,23 @@ function FloatingLabelInput({ type, name, children }) {
 
 function App() {
   const [data,setData] = useState([{}])
-  useEffect(() => {
-    fetch("/team").then(
-      res => res.json()
-    ).then(
-      data => {
-        setData(data)
-        console.log(data)
-      }
-    )
-
-  }, [])
-  const[stock, setStock] = useState('hi');
+  const[stock, setStock] = useState('AMZN');
   function handleActivation(e) {
     setStock(e.target.value);
+  }
+  function CallFlask(stock, startDate){
+    console.log(startDate)
+    useEffect(() => {
+      fetch('/predict?stock='+stock+'&todayTemp='+startDate).then(
+        res => res.json()
+      ).then(
+        data => {
+          setData(data)
+          console.log(data)
+        }
+      )
+  
+    }, [])
   }
   function formatDate(date) {
     var d = new Date(date),
@@ -108,6 +113,14 @@ function App() {
     return [year, month, day].join('-');
   }
   const [startDate, setStartDate] = useState(new Date());
+  /*useEffect(()=> {
+    const requestOpt = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json'},
+      body: JSON.stringify({stock: stock, date: startDate})
+    };
+    fetch('/predict?stock='+stock+'&todayTemp='+startDate,requestOpt).then(res => res.json()).then(data => console.log(data));
+  },[]);*/
   return (
       
     <div>
@@ -122,10 +135,10 @@ function App() {
       <div className='flex'>{stock.toString()}</div>
       {console.log(startDate)}
       {console.log(stock.toString())}
-      <Upload/>
+      <button className="block py-2 pr-4 pl-3 md:p-0 text-white bg-blue-450 rounded px-30" onClick={async () => await fetch('/predict?stock='+stock+'&todayTemp='+formatDate(startDate), {method: "POST",headers: {'Content-Type' : 'application/json'}})}>Get Prediction</button>
       <div className="flex flex-wrap justify-center">
         <div className="px-4">
-          <img src={require("./Components/assets/chart.png")} alt="..." className="shadow-lg rounded max-w-full h-auto align-middle border-none" />
+          <img src={require("./Components/assets/chart.png")} alt="Loading" className="shadow-lg rounded max-w-full h-auto align-middle border-none" />
         </div>
       </div>
       </div>
