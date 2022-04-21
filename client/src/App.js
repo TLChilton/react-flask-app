@@ -21,9 +21,6 @@ class Upload extends Component {
       skipEmptyLines: true,
       complete: function (results) {
         console.log(results.data)
-        for(var key in results.data){
-          
-        }
       },
     });
     console.log(event.target.files[0])
@@ -45,59 +42,11 @@ class Upload extends Component {
     }
 }
 
-function FloatingLabelInput({ type, name, children }) {
-  const [active, setActive] = React.useState(false);
-
-  function handleActivation(e) {
-    setActive(!!e.target.value);
-  }
-
-  
-
-  return (
-    <div className="relative border rounded mb-2 bg-gray-600 text-white border-white border-opacity-25">
-      <input
-        className={[
-          "outline-none w-full rounded bg-transparent text-sm transition-all duration-200 ease-in-out p-2",
-          active ? "pt-6" : ""
-        ].join(" ")}
-        id={name}
-        name={name}
-        type={type}
-        onChange={handleActivation}
-      />
-      <label
-        className={[
-          "absolute top-0 left-0 flex items-center text-white text-opacity-50 p-2 transition-all duration-200 ease-in-out",
-          active ? "text-xs" : "text-sm"
-        ].join(" ")}
-        htmlFor={name}
-      >
-        {children}
-      </label>
-    </div>
-  );
-}
-
 function App() {
   const [data,setData] = useState([{}])
   const[stock, setStock] = useState('AMZN');
   function handleActivation(e) {
     setStock(e.target.value);
-  }
-  function CallFlask(stock, startDate){
-    console.log(startDate)
-    useEffect(() => {
-      fetch('/predict?stock='+stock+'&todayTemp='+startDate).then(
-        res => res.json()
-      ).then(
-        data => {
-          setData(data)
-          console.log(data)
-        }
-      )
-  
-    }, [])
   }
   function formatDate(date) {
     var d = new Date(date),
@@ -113,19 +62,12 @@ function App() {
     return [year, month, day].join('-');
   }
   const [startDate, setStartDate] = useState(new Date());
-  /*useEffect(()=> {
-    const requestOpt = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json'},
-      body: JSON.stringify({stock: stock, date: startDate})
-    };
-    fetch('/predict?stock='+stock+'&todayTemp='+startDate,requestOpt).then(res => res.json()).then(data => console.log(data));
-  },[]);*/
+  
   return (
       
     <div>
       <Header/>
-      <div  id = 'mainDiv' className = 'container content-center p-60'>
+      <div  id = 'mainDiv' className = 'container content-center p-40 py-9'>
       <h1 class="font-medium leading-tight text-5xl mt-0 mb-2 text-blue-600">Peak Prediction</h1>
       <h4 class="font-medium leading-tight text-2xl mt-0 mb-2 text-blue-600">Enter a stock ticker (e.g. TSLA, GM, etc.)</h4>
       <div className="mb-3 pt-0">
@@ -171,15 +113,6 @@ function App() {
         ))
       )}
     </div>
-  )
-}
-
-function TWbutton(){
-  
-  return(
-    <button className="block py-2 pr-4 pl-3 md:p-0 text-white bg-blue-450 rounded px-30">
-      Upload CSV File
-    </button>
   )
 }
 
