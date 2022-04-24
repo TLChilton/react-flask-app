@@ -71,7 +71,7 @@ function App() {
       <h1 class="font-medium leading-tight text-5xl mt-0 mb-2 text-blue-600">Peak Prediction</h1>
       <h4 class="font-medium leading-tight text-2xl mt-0 mb-2 text-blue-600">Enter a stock ticker (e.g. TSLA, GM, etc.)</h4>
       <div className="mb-3 pt-0">
-      <input type="text" placeholder="Placeholder" onChange = {handleActivation} className="px-3 py-3 placeholder-slate-300 text-slate-600 relative bg-white bg-white rounded text-sm border-0 shadow outline-none focus:outline-none focus:ring w-full"/></div>
+      <input type="text" placeholder="Stock Ticker" onChange = {handleActivation} className="px-3 py-3 placeholder-slate-300 text-slate-600 relative bg-white bg-white rounded text-sm border-0 shadow outline-none focus:outline-none focus:ring w-full"/></div>
       <h4 class="font-medium leading-tight text-2xl mt-0 mb-2 text-blue-600">Enter the starting date for your prediction</h4>
       <DatePicker className = "relative border rounded mb-2 opacity-90 bg-gray-600 text-white border-white border-opacity-25" selected={startDate} onChange={(date) => setStartDate(date)} />
       {console.log(startDate)}
