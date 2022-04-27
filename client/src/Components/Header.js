@@ -13,7 +13,7 @@ const Header = () => {
 
   return (
     <div className='text-white'>
-        <nav class="bg-white border-gray-200 sm:px-3 py-2.5 rounded dark:bg-gray-800">
+        <nav class="bg-white border-gray-200 sm:px-3 py-2.5 rounded dark:bg-gray-800" style={{backgroundColor:'rgb(31 41 55)'}}>
         <div class=" text-white-100 container flex flex-wrap justify-between items-center mx-auto">
         <a href="https://www.paypal.com/" class="flex items-center">
         <img src={require("./assets/pp.png")} class="mr-3 h-6 sm:h-9" alt="Paypal Logo" />

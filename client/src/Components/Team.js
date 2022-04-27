@@ -37,7 +37,7 @@ function Team() {
 
     <div class="column">
       <div class="card">
-        <img src={require("./assets/Pranav.jpg")} alt="Pranav Pic" style={{borderRadius: "50%", width:'50%', background: 'red', display: 'block'}}/>
+        <img src={require("./assets/Pranav.jpeg")} alt="Pranav Pic" style={{borderRadius: "50%", width:'50%', background: 'red', display: 'block'}}/>
         <div class="container">
           <h2>Pranav Annapareddi</h2>
           <p class="title">Software Developer</p>
