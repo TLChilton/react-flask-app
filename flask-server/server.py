@@ -211,7 +211,8 @@ def predict():
         for xc in maxes[1:]:
             pyplot.axvline(x=xc, color="r", linestyle="--", zorder=1)
         pyplot.legend(loc="upper left")
-        pyplot.title("Prediction with Quarterly Maxes")
+        pyplot.title("%s Prediction with Quarterly Maxes" %stock)
+        pyplot.ylabel("Stock Price (USD)")
         pyplot.tight_layout()
         # Save plot to file
         pyplot.savefig('../client/src/Components/assets/chart.png')
