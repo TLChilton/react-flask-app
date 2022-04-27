@@ -183,19 +183,26 @@ def predict():
         yhat = model.predict(predict_X)
         yhat = yhat.reshape(-1, 1)
 
+        scaler.fit(df_predict["close"].values.reshape(-1,1))
+        inv_yhat = scaler.inverse_transform(yhat).reshape(365)
+
+        today = (df_predict.index[-1] + US_BUSINESS_DAY).to_pydatetime()
+        predictDates = [today]
+        for i in range(1, 365):
+            predictDates.append((today + i*US_BUSINESS_DAY).to_pydatetime())
+        
         # Finding Quarterly Maxes in Prediction
         numQuarters = floor(365 / 90)
         quarter = floor(365 / numQuarters)
-        maxes = [np.argmax(yhat[0:quarter], axis=0)]
+        maxes = [predictDates[np.argmax(inv_yhat[0:quarter], axis=0)]]
         for i in range(0, numQuarters - 1):
             maxes.append(
-                np.argmax(yhat[quarter * (i + 1) : quarter * (i + 2) - 1], axis=0)
-                + quarter * (i + 1)
+                predictDates[np.argmax(inv_yhat[quarter * (i + 1) : quarter * (i + 2) - 1], axis=0)+quarter*(i+1)]
             )
-
+        
         # Create plot
         pyplot.figure(figsize=(11, 4))
-        pyplot.plot(yhat, color="b", label="Prediction", zorder=2)
+        pyplot.plot(predictDates, inv_yhat, color="b", label="Prediction", zorder=2)
         # Adding dashed lines for the quarterly maximums
         pyplot.axvline(
             x=maxes[0], color="r", linestyle="--", label="Quarterly Max", zorder=1
@@ -209,7 +216,9 @@ def predict():
         pyplot.savefig("static/images/chart.png")
         pyplot.savefig('../client/src/Components/assets/chart.png')
         # Save prediction data to CSV
-        np.savetxt("uploads/Prediction.csv", yhat, delimiter=",")
+        df_prediction = pd.DataFrame(inv_yhat, columns=['Close'], index=predictDates)
+        df_prediction.index.name = 'Date'
+        df_prediction.to_csv("uploads/Prediction.csv")
         # Go to results page
         return '1'
     else:
