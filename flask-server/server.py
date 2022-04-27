@@ -121,7 +121,8 @@ def predict():
         # The stock data is timezoned, so we have to make it untimezoned
         df_Stock.index = df_Stock.index.tz_convert(None)
         # Get inputed date and a date 280 trading days in the past
-        past = df_Stock.loc[(df_Stock.index.to_pydatetime() <= today)].index[-1*(INPUT_DAYS+1)]
+        df_Stock = df_Stock.loc[(df_Stock.index.to_pydatetime() <= today)]
+        past = df_Stock.index[-1*(INPUT_DAYS+1)]
 
         ''' Section for Google Trends
         We check if the Google Trends data we need is available in the cached CSV
@@ -190,7 +191,7 @@ def predict():
         predictDates = [today]
         for i in range(1, 365):
             predictDates.append((today + i*US_BUSINESS_DAY).to_pydatetime())
-        
+
         # Finding Quarterly Maxes in Prediction
         numQuarters = floor(365 / 90)
         quarter = floor(365 / numQuarters)
@@ -213,12 +214,14 @@ def predict():
         pyplot.title("Prediction with Quarterly Maxes")
         pyplot.tight_layout()
         # Save plot to file
-        pyplot.savefig("static/images/chart.png")
         pyplot.savefig('../client/src/Components/assets/chart.png')
+        pyplot.figure().clear()
         # Save prediction data to CSV
         df_prediction = pd.DataFrame(inv_yhat, columns=['Close'], index=predictDates)
         df_prediction.index.name = 'Date'
         df_prediction.to_csv("uploads/Prediction.csv")
+
+        del df_prediction, df_predict, df, maxes, quarter, numQuarters, predictDates, today, inv_yhat, yhat, scaler, values, predict_X
         # Go to results page
         return '1'
     else:
