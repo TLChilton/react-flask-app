@@ -5,12 +5,14 @@ import App from './App';
 import { BrowserRouter as Router,Routes,Route } from 'react-router-dom';
 import reportWebVitals from './reportWebVitals';
 import Team from './Components/Team'
+import HowItWorks from './Components/HowItWorks'
 
 ReactDOM.render(
   <Router>
     <Routes>
       <Route path='/' element={<App/>}/>
       <Route path='/team' element={<Team/>}/>
+      <Route path='/howitworks' element={<HowItWorks/>}/>
     </Routes>
   </Router>,
   document.getElementById('root')

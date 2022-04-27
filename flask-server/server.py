@@ -37,10 +37,6 @@ def allowed_file(filename):
 
 app = Flask(__name__)
 
-@app.route("/team")
-def team():
-    return {"team": ["Heman","Thomas","Pranav"]}
-
 @app.route("/ticker")
 def ticker():
     ticker = request.args.get('ticker','hi')
