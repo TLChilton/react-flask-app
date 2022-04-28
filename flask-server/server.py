@@ -121,7 +121,8 @@ def predict():
         # The stock data is timezoned, so we have to make it untimezoned
         df_Stock.index = df_Stock.index.tz_convert(None)
         # Get inputed date and a date 280 trading days in the past
-        past = df_Stock.loc[(df_Stock.index.to_pydatetime() <= today)].index[-1*(INPUT_DAYS+1)]
+        df_Stock = df_Stock.loc[(df_Stock.index.to_pydatetime() <= today)]
+        past = df_Stock.index[-1*(INPUT_DAYS+1)]
 
         ''' Section for Google Trends
         We check if the Google Trends data we need is available in the cached CSV
@@ -183,19 +184,26 @@ def predict():
         yhat = model.predict(predict_X)
         yhat = yhat.reshape(-1, 1)
 
+        scaler.fit(df_predict["close"].values.reshape(-1,1))
+        inv_yhat = scaler.inverse_transform(yhat).reshape(365)
+
+        today = (df_predict.index[-1] + US_BUSINESS_DAY).to_pydatetime()
+        predictDates = [today]
+        for i in range(1, 365):
+            predictDates.append((today + i*US_BUSINESS_DAY).to_pydatetime())
+
         # Finding Quarterly Maxes in Prediction
         numQuarters = floor(365 / 90)
         quarter = floor(365 / numQuarters)
-        maxes = [np.argmax(yhat[0:quarter], axis=0)]
+        maxes = [predictDates[np.argmax(inv_yhat[0:quarter], axis=0)]]
         for i in range(0, numQuarters - 1):
             maxes.append(
-                np.argmax(yhat[quarter * (i + 1) : quarter * (i + 2) - 1], axis=0)
-                + quarter * (i + 1)
+                predictDates[np.argmax(inv_yhat[quarter * (i + 1) : quarter * (i + 2) - 1], axis=0)+quarter*(i+1)]
             )
-
+        
         # Create plot
         pyplot.figure(figsize=(11, 4))
-        pyplot.plot(yhat, color="b", label="Prediction", zorder=2)
+        pyplot.plot(predictDates, inv_yhat, color="b", label="Prediction", zorder=2)
         # Adding dashed lines for the quarterly maximums
         pyplot.axvline(
             x=maxes[0], color="r", linestyle="--", label="Quarterly Max", zorder=1
@@ -203,13 +211,18 @@ def predict():
         for xc in maxes[1:]:
             pyplot.axvline(x=xc, color="r", linestyle="--", zorder=1)
         pyplot.legend(loc="upper left")
-        pyplot.title("Prediction with Quarterly Maxes")
+        pyplot.title("%s Prediction with Quarterly Maxes" %stock)
+        pyplot.ylabel("Stock Price (USD)")
         pyplot.tight_layout()
         # Save plot to file
-        pyplot.savefig("static/images/chart.png")
         pyplot.savefig('../client/src/Components/assets/chart.png')
+        pyplot.figure().clear()
         # Save prediction data to CSV
-        np.savetxt("uploads/Prediction.csv", yhat, delimiter=",")
+        df_prediction = pd.DataFrame(inv_yhat, columns=['Close'], index=predictDates)
+        df_prediction.index.name = 'Date'
+        df_prediction.to_csv("uploads/Prediction.csv")
+
+        del df_prediction, df_predict, df, maxes, quarter, numQuarters, predictDates, today, inv_yhat, yhat, scaler, values, predict_X
         # Go to results page
         return '1'
     else:

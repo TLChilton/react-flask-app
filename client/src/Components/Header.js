@@ -20,7 +20,7 @@ const Header = () => {
               <span class="self-center text-xl font-semibold whitespace-nowrap text-white">PayPal</span>
           </a>
           <div class="flex md:order-2">
-              <Link class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-3 md:mr-0 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" to='/howitworks'>How It Works</Link>
+              <Link class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-3 md:mr-0 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" to='/howitworks'>How it Works</Link>
               
           </div>
             <div className='absolute text-white right-6 md:hidden top-6 scale-150'>

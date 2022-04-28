@@ -22,12 +22,26 @@ function HowItWorks() {
             values of that data set using a multivariate model. By multivariate we mean that the model should take multiple inputs to 
             reach its output. We settled on predicting stock data since its a dataset that is freely available on the internet in abundance.
             As supporting features for the model we eventually ended up using Google Trends data for a similar reason. Thus in our current 
-            model we predict stock data using Google Trends data for "Coronavirus" and "Electric Vehicle".
+            model we predict stock data using Google Trends data for "Coronavirus" and "Electric Vehicle". In theory this makes our model 
+            particularly trained for vehicle manufacturers and time periods where Coronavirus is relevant.
         </p>
         <h2 style={{fontWeight:'bold'}}>Technique:</h2>
-        <p style={{margin:'15px'}}>Here I'll talk about things like Bayesian Optimization, stacking the model, data preparation, etc.</p>
+        <p style={{margin:'15px'}}>
+            During the process of training our model we tried several different techniques for improving our results. One of these being 
+            Bayesian Optimization, which is a technique for optimizing the output of black-box functions. It does this by adjusting the 
+            parameters that go into the function to see how those parameters affect output, and it will train towards optimal parameters. 
+            In our case we optimized for the number of input timesteps, the learning rate, the number of layer neurons, the number of LSTM 
+            layers, dropout rate, batch size, patience of our early stopping function, and number of training epochs.
+        </p>
         <h2 style={{fontWeight:'bold'}}>Delivery:</h2>
-        <p style={{margin:'15px'}}>Here I'll talk about fetching data with the two APIs, caching of Google Trends data, React and Flask, etc.</p>
+        <p style={{margin:'15px'}}>
+            For the delivery of our model we decided on the React app you are seeing right now. The front end of this app uses ReactJS, and 
+            the backend is using the Flask python REST API library. The operation of the model (found on the home page) takes the inputed stock 
+            ticker and start date and uses that to download the 206 days worth of stock and Google Trends data input required by our model. We use 
+            pandas_datareader for downloading the stock data and pytrends for downloading the Google Trends data. Since the Google Trends data takes 
+            longer to download, we set up a local cache of Google Trends data and compare the requested date to what exists in the cache, and if possible 
+            we use data from the cache in order to limit the necessary API calls.
+        </p>
         </>
     )
 }
